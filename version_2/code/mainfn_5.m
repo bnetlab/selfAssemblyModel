@@ -5,19 +5,23 @@ clear all
 clc
 tic
 
-tau=0.4;
-T=0.6;
+tau=1;
+T=1;
 
 % mu=1.0;
 % lambda=1.0;
 bin=0.05;
 Pmin=0;
-Pmax=6;
-tmin=-4;
-tmax=10;
+Pmax=20;
+tmin=-10;
+tmax=30;
+
 Pin_point=(Pmax-Pmin)/bin +1;
-Z_point=401;
 obs_point=(tmax-tmin)/bin+1;
+Zmax=tmax;
+Zmin=tmin-Pmax;
+Z_point=(Zmax-Zmin)/bin+1;
+
 
 % parameters
 [t2,t3]=meshgrid([tmin:0.05:tmax]);
@@ -32,12 +36,10 @@ tau_3=reshape(tau_3,[],1);
 p1=first_dist(t2,t3,T);
 
 %2nd dist
-% f2=load('savedist_3d_4_05.tsv');
 f2=load('savedist_3d.tsv');
 %f2=Q = second_dist(mu, lambda, t2, t3, 0, 0 )
 
 %3rd dist
-
 indexy=[];
 for k=1:Pin_point
 a=[1+Z_point*(k-1):Pin_point+Z_point*(k-1)];
