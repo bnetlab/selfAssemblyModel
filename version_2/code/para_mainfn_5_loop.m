@@ -1,11 +1,13 @@
 % main function
 % longer observation and input time range
+% bin size 0.02
+% parallel
 
 clear all;clc;
 tic
 
-tau1=[0.5:0.25:5];
-T1=[0.5:0.25:5];
+tau1=[0.5:0.5:4.5];
+T1=[0.5:0.5:4.5];
 [tauX,TX] = meshgrid(tau1,T1);
 tauX=reshape(tauX,numel(tauX),[]);
 TX=reshape(TX, numel(TX),[]);
@@ -15,7 +17,7 @@ tau=tauX(loop)
 T=TX(loop)
 
 % integration range
-bin=0.05;
+bin=0.02;
 Pmin=0;
 Pmax=20;
 tmin=-10;
@@ -28,11 +30,11 @@ Z_point=(Zmax-Zmin)/bin+1;
 
 
 % parameters
-[t2,t3]=meshgrid([tmin:0.05:tmax]);
+[t2,t3]=meshgrid([tmin:bin:tmax]);
 t2=reshape(t2,[],1);
 t3=reshape(t3,[],1);
 
-[tau_2,tau_3]=meshgrid([Pmin:0.05:Pmax]);
+[tau_2,tau_3]=meshgrid([Pmin:bin:Pmax]);
 tau_2=reshape(tau_2,[],1);
 tau_3=reshape(tau_3,[],1);
 
