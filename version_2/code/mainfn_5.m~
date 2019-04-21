@@ -1,5 +1,6 @@
 % main function
 % longer observation and input time range
+% bin size 0.02
 
 clear all
 clc
@@ -10,7 +11,7 @@ T=1;
 
 % mu=1.0;
 % lambda=1.0;
-bin=0.1;
+bin=0.01;
 Pmin=0;
 Pmax=20;
 tmin=-10;
@@ -36,7 +37,7 @@ tau_3=reshape(tau_3,[],1);
 p1=first_dist(t2,t3,T);
 
 %2nd dist
-f2=load('savedist_3d.tsv'); % run the cuda code; make sure to use same bin, mu, lambda, range
+f2=load('savedist_3d.tsv'); % run the cuda 
 
 
 %3rd dist
