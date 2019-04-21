@@ -74,5 +74,8 @@ end
 toc
 clearvars -except p tauX TX
 
+f2=load('savedist_4d.tsv'); % run the cuda code; make sure to use same bin, mu, lambda, range
+
+
 
 
