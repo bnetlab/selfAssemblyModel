@@ -9,9 +9,9 @@ T=1;
 % lambda=1.0;
 bin=0.1;
 Pmin=0;
-Pmax=15;
-tmin=-10;
-tmax=25;
+Pmax=1;
+tmin=-1;
+tmax=2;
 
 Pin_point=(Pmax-Pmin)/bin +1;
 obs_point=(tmax-tmin)/bin+1;
@@ -36,12 +36,40 @@ p1=first_dist4m(t2,t3,t4,T);
 
 %2nd dist
 f2=load('savedist_4d.tsv'); % run the cuda code; make sure to use same bin, mu, lambda, range
-
+toc
 %3rd dist
+indexy=[];
+for k1=1:Pin_point
+    for k2=1:Pin_point
+        a=[1+Z_point*Z_point*(k1-1)+Z_point*(k2-1):Pin_point+Z_point*Z_point*(k1-1)+Z_point*(k2-1)];
+        indexy=[indexy,a]; % indexy give us all input combinations (all {x})
+    end
+end
+indexy=fliplr(indexy);
+
+indexx=[];
+    for k=0:(obs_point-1)
+        for i=0:(obs_point-1)
+            z=[k*Z_point*Z_point+i*Z_point:k*Z_point*Z_point+i*Z_point+(obs_point-1)];
+            indexx=[indexx,z];
+        end 
+    end
+toc
+
+%p3=zeros(1,length(tau_2));
+for i=1:length(tau_2)
+	p2=f2(indexx+indexy(i));
+	p3(i)=bin*bin*bin*sum(p1.*p2');
+end
+
+toc
 
 %4th dist
 p4=fourth_dist4m(tau_2,tau_3,tau_4,tau);
-bin*bin*sum(p4)
+bin*bin*bin*sum(p4)
+
+%5th dist
+p=bin*bin*bin*sum(p4.*p3)
 
 
 
