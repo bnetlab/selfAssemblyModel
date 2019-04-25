@@ -1,4 +1,4 @@
-function ps=fourth_dist4m(a,b,c,tau)
+function ps=fourth_dist(a,b,tau)
     if ~exist('tau')
         tau = 1;
     end
