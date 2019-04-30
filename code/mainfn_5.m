@@ -10,7 +10,7 @@ T=1;
 
 % mu=1.0;
 % lambda=1.0;
-bin=0.05;
+bin=0.10;
 Pmin=0;
 Pmax=20;
 tmin=-10;
