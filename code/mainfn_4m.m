@@ -2,16 +2,16 @@ clear all
 clc
 tic
 
-tau=1;
-T=1;
+tau=4;
+T=4;
 
 % mu=1.0;
 % lambda=1.0;
 bin=0.1;
 Pmin=0;
-Pmax=1;
-tmin=-1;
-tmax=2;
+Pmax=20;
+tmin=-10;
+tmax=30;
 
 Pin_point=(Pmax-Pmin)/bin +1;
 obs_point=(tmax-tmin)/bin+1;
@@ -57,7 +57,7 @@ indexx=[];
 toc
 
 %p3=zeros(1,length(tau_2));
-for i=1:length(tau_2)
+parfor i=1:length(tau_2)
 	p2=f2(indexx+indexy(i));
 	p3(i)=bin*bin*bin*sum(p1.*p2');
 end
