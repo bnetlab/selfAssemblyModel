@@ -54,7 +54,7 @@ indexx=zeros(1,obs_point*obs_point);
     
 toc
 p3=zeros(1,length(tau_2));
-parfor i=1:length(tau_2)
+for i=1:length(tau_2)
 	p2=f2(indexx+indexy(i));
 	p3(i)=bin*bin*sum(p1.*p2');
 end
