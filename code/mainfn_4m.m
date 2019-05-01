@@ -9,10 +9,10 @@ T=4;
 % lambda=1.0;
 bin=0.1;
 Pmin=0;
-Pmax=20;
-tmin=-10;
-tmax=30;
+Pmax=5;
+tmin=-5;
 
+tmax=Pmax - tmin;
 Pin_point=(Pmax-Pmin)/bin +1;
 obs_point=(tmax-tmin)/bin+1;
 Zmax=tmax;
@@ -26,7 +26,7 @@ t2=reshape(t2,[],1);
 t3=reshape(t3,[],1);
 t4=reshape(t4,[],1);
 
-[tau_2,tau_3, tau_4]=meshgrid([Pmin:bin:Pmax]);
+[tau_2, tau_3, tau_4]=meshgrid([Pmin:bin:Pmax]);
 tau_2=reshape(tau_2,[],1);
 tau_3=reshape(tau_3,[],1);
 tau_4=reshape(tau_4,[],1);
