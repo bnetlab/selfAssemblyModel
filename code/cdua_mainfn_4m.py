@@ -38,14 +38,14 @@ mod = SourceModule("""
         float sum1 = 0;
         float sum2 = 0;
         int j = indexy[idx]; 
-        for (int i = 0; i < total ; i++){
+        for (int i = 0; i <= total ; i++){
            if(Z[indexx[i]+j-1]>0.f){
                sum1 += 0.1*0.1*0.1 * Z[indexx[i]+j-1] * P1[i];
                sum2 += 0.1*0.1*0.1 * Z[indexx[i]+j-1] * P2[i];
            }
            
         }; 
-        //printf("%d\t%f\t%f\t%d\t%d\t%d%d\\n",idx,sum,Z[195040],indexx[0], indexy[0],P1[0],total);
+        //printf("%d\t%f\t%f\t%d\t%d\t%d\t%d\\n",idx,sum1,Z[0],indexx[sizeof(indexy)/sizeof(indexy[0]) - 1], indexy[0],P1[0],total);
         P3[idx] = sum1; 
         P4[idx] = sum2;
         
@@ -88,15 +88,6 @@ def eq4(a,b,c,tau=1):
 
 
 # parameter
-tau = 1;
-T = 1;
-mu = 1.0;
-lamda = 1.0;
-bin_size = 0.10;
-Pmin = 0;
-Pmax = 5;
-tmin = -5;
-
 
 # In[8]:
 
@@ -126,13 +117,20 @@ def mainfn(bin_size, Pmin, Pmax, tmin, tau, T, mu, lamda):
     f2 = pd.read_csv('savedist_4d.tsv',sep=' ',squeeze=True,header=None).values
 
     # for 4
+    # indexy = np.load("indexy.npy")
+    # indexx = np.load("indexx.npy")
+    # indexy = indexy[::-1]
+    
+    
     indexy = np.zeros(Pin_point*Pin_point*Pin_point,dtype=int)
     for k in range (1,Pin_point+1):
         for k1 in range (1,Pin_point+1):
             a = [i for i in range(1+(Z_point*Z_point*(k-1))+(Z_point*(k1-1)),Pin_point+1+(Z_point*Z_point*(k-1))+(Z_point*(k1-1)))] 
             indexy[(k-1)*Pin_point*Pin_point + (k1-1)*Pin_point : (k-1)*Pin_point*Pin_point + k1*Pin_point] = a
-
+    
     print("I am here")
+    indexy = indexy[::-1]
+
 
     indexx = np.zeros(obs_point * obs_point * obs_point)
 
@@ -140,14 +138,14 @@ def mainfn(bin_size, Pmin, Pmax, tmin, tau, T, mu, lamda):
         for k1 in range (0,obs_point): 
             a = [i for i in range(Z_point*Z_point*(k)+k1*(Z_point),Z_point*Z_point*(k)+k1*Z_point+obs_point)] 
             indexx[k*obs_point*obs_point+obs_point*k1:k*obs_point*obs_point+(k1+1)*obs_point] = a
-
-    print("I am here too")
-
-    np.save('indexy', indexy)
-    np.save('indexx', indexx)
-
+#     np.save('indexy', indexy)
+#     np.save('indexx', indexx)
+    
+    print(indexx[0],indexy[0],indexx[-1],indexy[-1],f2.shape)
+    
     p4 = eq4(tau3,tau4,tau2,tau)
-
+    
+    print("I am going into cuda")
     # cuda
 
     startC=time.time()
@@ -167,16 +165,20 @@ def mainfn(bin_size, Pmin, Pmax, tmin, tau, T, mu, lamda):
     cuda.memcpy_htod(d_P1S4, np.int32(p1s4))
 
     d_P3S2 = cuda.mem_alloc(np.float32(indexy).nbytes)
-    d_P3S4 = cuda.mem_alloc(np.float32(indexy).nbytes) 
+    cuda.memcpy_htod(d_P3S2, np.float32(np.zeros_like(indexy)))
+    d_P3S4 = cuda.mem_alloc(np.float32(indexy).nbytes)
+    cuda.memcpy_htod(d_P3S4, np.float32(np.zeros_like(indexy))) 
 
     func = mod.get_function("doIndexy")
 
-    blocksize = 128
-    gridsize = math.floor(len(indexy)/blocksize)+1
+    blocksize = 1
+    gridsize = math.floor(len(indexy)/blocksize)
     func(d_Z, d_indexx, d_indexy, d_P1S2, d_P1S4, d_P3S2, d_P3S4, np.int32(len(p1s2)),  block=(blocksize,1,1), grid =(gridsize,1,1))
 
-    h_test_outs2 = np.zeros(len(indexy), np.float32)
-    h_test_outs4 = np.zeros(len(indexy), np.float32)
+    cuda.Context.synchronize()
+    h_test_outs2 = np.empty_like(np.float32(p4))
+    print(h_test_outs2.shape)
+    h_test_outs4 = np.empty_like(np.float32(p4))
     cuda.memcpy_dtoh(h_test_outs2, d_P3S2)
     cuda.memcpy_dtoh(h_test_outs4, d_P3S4)
 
@@ -196,5 +198,4 @@ def mainfn(bin_size, Pmin, Pmax, tmin, tau, T, mu, lamda):
 
 if __name__== "__main__":
   mainfn(float(sys.argv[1]), float(sys.argv[2]),float(sys.argv[3]),float(sys.argv[4]),float(sys.argv[5]),float(sys.argv[6]),float(sys.argv[7]),float(sys.argv[8]))
-
 
