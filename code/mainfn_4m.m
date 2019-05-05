@@ -2,8 +2,8 @@ clear all
 clc
 tic
 
-tau=4;
-T=4;
+tau=1;
+T=1;
 
 % mu=1.0;
 % lambda=1.0;
@@ -35,7 +35,7 @@ tau_4=reshape(tau_4,[],1);
 p1=first_dist4m(t2,t3,t4,T);
 
 %2nd dist
-f2=load('savedist_4d.tsv'); % run the cuda code; make sure to use same bin, mu, lambda, range
+f2=load('savedist_4d_old.tsv'); % run the cuda code; make sure to use same bin, mu, lambda, range
 toc
 %3rd dist
 indexy=[];
