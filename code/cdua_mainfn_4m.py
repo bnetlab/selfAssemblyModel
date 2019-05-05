@@ -2,8 +2,6 @@
 # coding: utf-8
 
 # In[1]:
-
-
 import numpy as np
 import pandas as pd
 import scipy as sp
@@ -13,11 +11,9 @@ import pycuda.driver as cuda
 from pycuda.compiler import SourceModule
 import os
 import sys
-
 import time
 
 # In[2]:
-
 
 mod = SourceModule("""
     # include <stdio.h>
@@ -39,8 +35,8 @@ mod = SourceModule("""
         int j = indexy[idx]; 
         for (int i = 0; i < totalSum ; i++){
            if(Z[indexx[i]+j]>0.f){
-               sum_a += 0.1*0.1*0.1 * Z[indexx[i]+j-1] * P1a[i];
-               sum_b += 0.1*0.1*0.1 * Z[indexx[i]+j-1] * P1b[i];
+               sum_a += 0.1*0.1*0.1 * Z[indexx[i]+j] * P1a[i];
+               sum_b += 0.1*0.1*0.1 * Z[indexx[i]+j] * P1b[i];
            }
            
         }; 
@@ -116,25 +112,21 @@ def mainfn(bin_size, Pmin, Pmax, tmin, tau, T, mu, lamda):
         for k1 in range (0,Pin_point):
             a = [i for i in range( Z_point*Z_point*k + Z_point*k1 , Z_point*Z_point*k + Z_point*k1 + Pin_point)] 
             indexy[ k*Pin_point*Pin_point + k1*Pin_point : k*Pin_point*Pin_point + (k1+1)*Pin_point] = a
-    
-    print("I am here")
+
     indexy = indexy[::-1]
 
-
     indexx = np.zeros(obs_point ** 3, dtype=int)
-
     for k in range (0,obs_point): 
         for k1 in range (0,obs_point): 
             a = [i for i in range(Z_point*Z_point*k + k1*Z_point, Z_point*Z_point*k + k1*Z_point + obs_point )] 
             indexx[k*obs_point*obs_point + obs_point*k1 : k*obs_point*obs_point + (k1+1)*obs_point ] = a
-#     np.save('indexy', indexy)
-#     np.save('indexx', indexx)
     
-    print(indexx[0], indexy[0], indexx[-1], indexy[-1], f2.shape)
+    np.save('indexy', indexy)
+    np.save('indexx', indexx)
     
     p4 = eq4(tau3,tau4,tau2,tau)
-    
     print("I am going into cuda")
+    
     # cuda
 
     startC=time.time()
@@ -178,11 +170,12 @@ def mainfn(bin_size, Pmin, Pmax, tmin, tau, T, mu, lamda):
 
     print("I am out of  cuda")
 
-    p=np.empty(2)
-    p[0] = bin_size*bin_size*bin_size*np.sum( h_test_outs2)
-    p[1] = bin_size*bin_size*bin_size*np.sum( h_test_outs4)
+    p=np.empty(6)
+    p[0]=mu; p[1]=lamda; p[2]=T; p[3]=tau;
+    p[4] = bin_size*bin_size*bin_size*np.sum( h_test_outs2)
+    p[5] = bin_size*bin_size*bin_size*np.sum( h_test_outs4)
     
-    filename = "testfile" + str(mu) + str (lamda) +str(T) +str (tau)
+    filename = "result/testfile" + str(mu) + str (lamda) +str(T) +str (tau)
     file = open(filename,"w") 
     file.write(str(p))
     file.close() 
