@@ -5,16 +5,16 @@ clear all
 clc
 tic
 
-tau=1;
-T=1;
+tau=3;
+T=3;
 
 % mu=1.0;
 % lambda=1.0;
-bin=0.10;
+bin=0.05;
 Pmin=0;
-Pmax=20;
+Pmax=12;
 tmin=-10;
-tmax=30;
+tmax=22;
 
 Pin_point=(Pmax-Pmin)/bin +1;
 obs_point=(tmax-tmin)/bin+1;
@@ -51,7 +51,6 @@ indexx=zeros(1,obs_point*obs_point);
         z=[i*Z_point:i*Z_point+(obs_point-1)];
         indexx(i*obs_point+1:(i+1)*obs_point) = z;
     end
-    
 toc
 p3=zeros(1,length(tau_2));
 for i=1:length(tau_2)

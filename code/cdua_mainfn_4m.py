@@ -21,7 +21,7 @@ mod = SourceModule("""
     #define N 1000
     
     
-    __global__ void doIndexy(float *Z, int *indexx, int *indexy, int *P1a, int *P1b, float *P4, float *P3a, float *P3b, int totalSum, int totalThread )
+    __global__ void doIndexy(float *Z, int *indexx, int *indexy, int *P1a, int *P1b, float *P4, float *P3a, float *P3b, int totalSum, int totalThread, int bin_size )
     { 
         
         int idx = blockIdx.x * blockDim.x + threadIdx.x; 
@@ -35,8 +35,8 @@ mod = SourceModule("""
         int j = indexy[idx]; 
         for (int i = 0; i < totalSum ; i++){
            if(Z[indexx[i]+j]>0.f){
-               sum_a += 0.1*0.1*0.1 * Z[indexx[i]+j] * P1a[i];
-               sum_b += 0.1*0.1*0.1 * Z[indexx[i]+j] * P1b[i];
+               sum_a += bin_size*bin_size*bin_size * Z[indexx[i]+j] * P1a[i];
+               sum_b += bin_size*bin_size*bin_size * Z[indexx[i]+j] * P1b[i];
            }
            
         }; 
@@ -103,8 +103,8 @@ def mainfn(bin_size, Pmin, Pmax, tmin, tau, T, mu, lamda):
     f2 = pd.read_csv('savedist_4d.tsv',sep=' ', squeeze=True, header=None).values
 
     # reading indexx and indexy
-    # indexy = np.load("indexy.npy")
-    # indexx = np.load("indexx.npy")
+    #indexy = np.load("indexy.npy")
+    #indexx = np.load("indexx.npy")
     
     
     indexy = np.zeros(Pin_point ** 3,dtype=int)
@@ -157,7 +157,7 @@ def mainfn(bin_size, Pmin, Pmax, tmin, tau, T, mu, lamda):
 
     blocksize = 128
     gridsize = math.floor(len(indexy)/blocksize)
-    func(d_Z, d_indexx, d_indexy, d_P1S2, d_P1S4,d_P4, d_P3S2, d_P3S4, np.int32(len(p1s2)),np.int32(len(p4)), block=(blocksize,1,1), grid =(gridsize,1,1))
+    func(d_Z, d_indexx, d_indexy, d_P1S2, d_P1S4,d_P4, d_P3S2, d_P3S4, np.int32(len(p1s2)),np.int32(len(p4)),np.int32(bin_size) block=(blocksize,1,1), grid =(gridsize,1,1))
 
     cuda.Context.synchronize()
     
