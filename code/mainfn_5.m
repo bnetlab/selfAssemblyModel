@@ -5,16 +5,16 @@ clear all
 clc
 tic
 
-tau=3;
-T=3;
+tau=4;
+T=4;
 
 % mu=1.0;
 % lambda=1.0;
-bin=0.05;
+bin=0.10;
 Pmin=0;
-Pmax=12;
-tmin=-10;
-tmax=22;
+Pmax=20;
+tmin=-20;
+tmax=40;
 
 Pin_point=(Pmax-Pmin)/bin +1;
 obs_point=(tmax-tmin)/bin+1;

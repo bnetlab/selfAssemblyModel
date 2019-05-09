@@ -21,7 +21,7 @@ mod = SourceModule("""
     #define N 1000
     
     
-    __global__ void doIndexy(float *Z, int *indexx, int *indexy, int *P1a, int *P1b, float *P4, float *P3a, float *P3b, int totalSum, int totalThread, int bin_size )
+    __global__ void doIndexy(float *Z, int *indexx, int *indexy, int *P1a, int *P1b, float *P4, float *P3a, float *P3b, int totalSum, int totalThread, float bin_size )
     { 
         
         int idx = blockIdx.x * blockDim.x + threadIdx.x; 
@@ -103,26 +103,26 @@ def mainfn(bin_size, Pmin, Pmax, tmin, tau, T, mu, lamda):
     f2 = pd.read_csv('savedist_4d.tsv',sep=' ', squeeze=True, header=None).values
 
     # reading indexx and indexy
-    #indexy = np.load("indexy.npy")
-    #indexx = np.load("indexx.npy")
+    indexy = np.load("indexy.npy")
+    indexx = np.load("indexx.npy")
     
     
-    indexy = np.zeros(Pin_point ** 3,dtype=int)
-    for k in range (0,Pin_point):
-        for k1 in range (0,Pin_point):
-            a = [i for i in range( Z_point*Z_point*k + Z_point*k1 , Z_point*Z_point*k + Z_point*k1 + Pin_point)] 
-            indexy[ k*Pin_point*Pin_point + k1*Pin_point : k*Pin_point*Pin_point + (k1+1)*Pin_point] = a
+    #indexy = np.zeros(Pin_point ** 3,dtype=int)
+    #for k in range (0,Pin_point):
+    #    for k1 in range (0,Pin_point):
+    #        a = [i for i in range( Z_point*Z_point*k + Z_point*k1 , Z_point*Z_point*k + Z_point*k1 + Pin_point)] 
+    #        indexy[ k*Pin_point*Pin_point + k1*Pin_point : k*Pin_point*Pin_point + (k1+1)*Pin_point] = a
 
-    indexy = indexy[::-1]
+    #indexy = indexy[::-1]
 
-    indexx = np.zeros(obs_point ** 3, dtype=int)
-    for k in range (0,obs_point): 
-        for k1 in range (0,obs_point): 
-            a = [i for i in range(Z_point*Z_point*k + k1*Z_point, Z_point*Z_point*k + k1*Z_point + obs_point )] 
-            indexx[k*obs_point*obs_point + obs_point*k1 : k*obs_point*obs_point + (k1+1)*obs_point ] = a
+    #indexx = np.zeros(obs_point ** 3, dtype=int)
+    #for k in range (0,obs_point): 
+    #    for k1 in range (0,obs_point): 
+    #        a = [i for i in range(Z_point*Z_point*k + k1*Z_point, Z_point*Z_point*k + k1*Z_point + obs_point )] 
+    #        indexx[k*obs_point*obs_point + obs_point*k1 : k*obs_point*obs_point + (k1+1)*obs_point ] = a
     
-    np.save('indexy', indexy)
-    np.save('indexx', indexx)
+    #np.save('indexy', indexy)
+    #np.save('indexx', indexx)
     
     p4 = eq4(tau3,tau4,tau2,tau)
     print("I am going into cuda")
@@ -157,7 +157,7 @@ def mainfn(bin_size, Pmin, Pmax, tmin, tau, T, mu, lamda):
 
     blocksize = 128
     gridsize = math.floor(len(indexy)/blocksize)
-    func(d_Z, d_indexx, d_indexy, d_P1S2, d_P1S4,d_P4, d_P3S2, d_P3S4, np.int32(len(p1s2)),np.int32(len(p4)),np.int32(bin_size) block=(blocksize,1,1), grid =(gridsize,1,1))
+    func(d_Z, d_indexx, d_indexy, d_P1S2, d_P1S4,d_P4, d_P3S2, d_P3S4, np.int32(len(p1s2)),np.int32(len(p4)),np.float32(bin_size), block=(blocksize,1,1), grid =(gridsize,1,1))
 
     cuda.Context.synchronize()
     
@@ -169,13 +169,12 @@ def mainfn(bin_size, Pmin, Pmax, tmin, tau, T, mu, lamda):
     cuda.Context.synchronize()
 
     print("I am out of  cuda")
-
     p=np.empty(6)
     p[0]=mu; p[1]=lamda; p[2]=T; p[3]=tau;
     p[4] = bin_size*bin_size*bin_size*np.sum( h_test_outs2)
     p[5] = bin_size*bin_size*bin_size*np.sum( h_test_outs4)
     
-    filename = "result/testfile" + str(mu) + str (lamda) +str(T) +str (tau)
+    filename = "result2/testfile" + str(mu) + str (lamda) +str(T) +str (tau)
     file = open(filename,"w") 
     file.write(str(p))
     file.close() 
