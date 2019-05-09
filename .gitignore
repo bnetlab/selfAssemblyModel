@@ -2,5 +2,5 @@
 *.png
 *.m~
 *.npy
-/code/result
+/code/4_molecules/result
 
