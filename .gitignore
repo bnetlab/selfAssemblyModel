@@ -4,5 +4,6 @@
 *.npy
 /code/4_molecules/result
 .ipynb_checkpoints
+*.csv
 
 
