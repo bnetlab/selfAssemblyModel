@@ -9,14 +9,25 @@ Created on Wed Jun 12 13:02:14 2019
 V = l/mu
 D = 2 * sigma^2 = (2*l^2) / lambda 
 
+Things to to:
+    1. Check with inverse gaussian distribution
+    2. decrease bin_size
+    3. compare with 3 molecules 
+    4. genearlize for higher moleculaes
+
 """
 
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
+from scipy.stats import invgauss
 import math
 import time
 
-def brownian(d,v,sigma,t_bin=0.01):
+def brownian(d,v,sigma,t_bin=0.001):
+    
+    # simulate brownian motion
+    
     pos= 0
     t= 0
     v_t = v*t_bin
@@ -38,6 +49,8 @@ def eq1s4(t2,t3,t4,T):
     return a
         
 def sim(d,v,sigma,T,tau, no_sim=100000):
+    
+    # simulate 4 particle model
     
     s_count = np.zeros(3)
     for i in range(1,no_sim):
@@ -62,8 +75,27 @@ def sim(d,v,sigma,T,tau, no_sim=100000):
             
     s_prob = s_count/no_sim
     return(s_prob)
+
+def isIG(d,v,sigma,T,tau, no_sim=100000, n_bins=20):
+    
+    # check the distribution is IG or not
+    
+    simData = np.empty([no_sim,])
+    for i in range(1,no_sim):
+        simData[i] = brownian(d,v,sigma)
+    simData = simData[(simData <= 5*(d/v))]
+    plt.hist(simData, normed=True, bins=n_bins)
+    plt.ylabel('Prob')
+    
+    igData = invgauss.rvs(1, size=no_sim)
+    igData = igData[(igData <= 5*(d/v))]
+    
+    plt.hist(igData, normed=True, histtype='step', bins=n_bins, color='r')
     
 def main():
+    
+    # run for different parameter combination
+    
     d=1; v=1; sigma=1;
     count=0; Data = np.zeros((64,8),dtype=float)
     start = time.time()
@@ -77,8 +109,17 @@ def main():
             print("Done :", count, " Time : ",time.time() - start)
     pd.DataFrame(Data).to_csv('dataSimulation.csv')
     
-
-main()    
+def test():
+    
+    # test mode
+    
+    d=1; v=1; sigma=1; T=1; tau=1; 
+    start = time.time()
+    res = sim(d,v,sigma,T,tau)
+    print("result : ", res, " Time: ", time.time()-start)
+    isIG(d,v,sigma,T,tau)
+        
+test()    
     
     
     
