@@ -18,8 +18,9 @@ plt.switch_backend('agg')
 from scipy.stats import invgauss
 import math
 import time
+import sys 
 
-def brownian(d,v,sigma,t_bin=0.001):
+def brownian(d,v,sigma,t_bin=0.0001):
     
     # simulate brownian motion
     
@@ -100,14 +101,14 @@ def isIG(d,v,sigma, no_sim=100000, n_bins=20):
     plt.hist(igData, normed=True, histtype='step',range = (0,5*(d/v)), bins=n_bins, color='r')
     
     
-    filename = 'plot' + str(d) + str(v) + str(sigma) + '.png'
+    filename = 'plot_' + str(d) + '_' + str(v) +'_' + str(sigma) + '.png'
     plt.savefig(filename)
     
-def main():
+def main(N):
     
     # run for different parameter combination
     
-    N=4 ;d=1; v=1; sigma=1;
+    d=1; v=1; sigma=1;
     t_range = [0.5,1,1.5,2,2.5,3,3.5,4]
     tau_range = [0.5,1,1.5,2,2.5,3,3.5,4]
     count=0; Data = np.zeros((len(t_range)*len(tau_range),5+N-1),dtype=float)
@@ -127,17 +128,17 @@ def main():
 def test():
     
     # test mode
-#    for d in [1,2,4]:
-#        for v in [1,2,4]:
-#            for sigma in [1,0.5,0.25]:
-#                isIG(d,v,sigma)
+    for d in [1,2,4]:
+        for v in [1,2,4]:
+            for sigma in [1,0.5,0.25]:
+                isIG(d,v,sigma)
                 
-    N=4; d=1; v=1; sigma=1; T=2; tau=2;
-    start = time.time()
-    res = sim(N,d,v,sigma,T,tau)
-    print("result : ", res, " Time: ", time.time()-start)
+#    N=4; d=1; v=1; sigma=1; T=2; tau=2;
+#    start = time.time()
+#    res = sim(N,d,v,sigma,T,tau)
+#    print("result : ", res, " Time: ", time.time()-start)
         
-main()    
+main(int(sys.argv[1]))    
     
     
     
