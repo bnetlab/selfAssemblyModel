@@ -20,7 +20,7 @@ import math
 import time
 import sys 
 
-def brownian(d,v,sigma,t_bin=0.0001):
+def brownian(d,v,sigma,t_bin=0.001):
     
     # simulate brownian motion
     
@@ -69,11 +69,13 @@ def sim(N,d,v,sigma,T,tau, no_sim=100000):
         tauT = np.zeros((N,),dtype=float)
         tauT[0] = 0;
         for i in range(1,len(tauT)):
-            tauT[i] =tauT[i-1]+ np.random.exponential(tau);
+            tauT[i] =tauT[i-1]+ np.random.exponential(1/tau);
             
         t = np.zeros((N,),dtype=float)
         for i in range(0,len(t)):
             t[i] =tauT[i]+ brownian(d,v,sigma);
+        
+        t=t-t[0] # making relatiove to 1st particle
             
         s = eq1(t,T)
         
@@ -128,18 +130,19 @@ def main(N):
 def test():
     
     # test mode
-    for d in [1,2,4]:
-        for v in [1,2,4]:
-            for sigma in [1,0.5,0.25]:
-                isIG(d,v,sigma)
+#    for d in [1,2,4]:
+#        for v in [1,2,4]:
+#            for sigma in [1,0.5,0.25]:
+#                isIG(d,v,sigma)
                 
-#    N=4; d=1; v=1; sigma=1; T=2; tau=2;
-#    start = time.time()
-#    res = sim(N,d,v,sigma,T,tau)
-#    print("result : ", res, " Time: ", time.time()-start)
+    N=4; d=1; v=1; sigma=1; T=1; tau=4;
+    start = time.time()
+    res = sim(N,d,v,sigma,T,tau)
+    print("result : ", res, " Time: ", time.time()-start)
         
-main(int(sys.argv[1]))    
-    
+# main(int(sys.argv[1]))    
+
+test()  
     
     
     
