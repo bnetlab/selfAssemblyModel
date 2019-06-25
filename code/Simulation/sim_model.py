@@ -125,7 +125,8 @@ def main(N):
             count+=1;
             print("Done :", count, " Time : ",time.time() - start)
     
-    pd.DataFrame(Data).to_csv('dataSimulation'+str(N)+'.csv')
+    col_name= ['d', 'v', 'sigma', 'T', 'tau'] + ['S'+ str(i) for i in range(2,N+1)]
+    pd.DataFrame(Data).to_csv('dataSimulation'+str(N)+'.csv', column_name=col_name)
     
 def test():
     
@@ -140,7 +141,7 @@ def test():
     res = sim(N,d,v,sigma,T,tau)
     print("result : ", res, " Time: ", time.time()-start)
         
-# main(int(sys.argv[1]))    
+main(int(sys.argv[1]))    
 
 test()  
     
