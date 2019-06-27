@@ -20,7 +20,7 @@ import math
 import time
 import sys 
 
-def brownian(d,v,sigma,t_bin=0.001):
+def brownian(d,v,sigma,t_bin=0.01):
     
     # simulate brownian motion
     
@@ -126,7 +126,8 @@ def main(N):
             print("Done :", count, " Time : ",time.time() - start)
     
     col_name= ['d', 'v', 'sigma', 'T', 'tau'] + ['S'+ str(i) for i in range(2,N+1)]
-    pd.DataFrame(Data).to_csv('dataSimulation'+str(N)+'.csv', column_name=col_name)
+    Data = pd.DataFrame(Data, columns=col_name)
+    Data.to_csv('dataSimulation'+str(N)+'.csv', index =False)
     
 def test():
     
@@ -141,9 +142,8 @@ def test():
     res = sim(N,d,v,sigma,T,tau)
     print("result : ", res, " Time: ", time.time()-start)
         
-main(int(sys.argv[1]))    
+main(int(sys.argv[1]))
 
-test()  
     
     
     
