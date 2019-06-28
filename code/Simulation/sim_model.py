@@ -20,7 +20,7 @@ import math
 import time
 import sys 
 
-def brownian(d,v,sigma,t_bin=0.01):
+def brownian(d,v,sigma,t_bin=0.001):
     
     # simulate brownian motion
     
@@ -59,7 +59,7 @@ def eq1(t,T):
     s_arr[s-2] = 1
     return s_arr
         
-def sim(N,d,v,sigma,T,tau, no_sim=100000):
+def sim(N,d,v,sigma,T,tau, no_sim=500000):
     
     # simulate N particle model
     
@@ -67,13 +67,13 @@ def sim(N,d,v,sigma,T,tau, no_sim=100000):
     for i in range(1,no_sim):
         
         tauT = np.zeros((N,),dtype=float)
-        tauT[0] = 0;
+        tauT[0] = 0
         for i in range(1,len(tauT)):
-            tauT[i] =tauT[i-1]+ np.random.exponential(1/tau);
+            tauT[i] =tauT[i-1]+ np.random.exponential(tau)
             
         t = np.zeros((N,),dtype=float)
         for i in range(0,len(t)):
-            t[i] =tauT[i]+ brownian(d,v,sigma);
+            t[i] =tauT[i]+ brownian(d,v,sigma)
         
         t=t-t[0] # making relatiove to 1st particle
             
@@ -110,7 +110,7 @@ def main(N):
     
     # run for different parameter combination
     
-    d=1; v=1; sigma=1;
+    d=1; v=1; sigma=1
     t_range = [0.5,1,1.5,2,2.5,3,3.5,4]
     tau_range = [0.5,1,1.5,2,2.5,3,3.5,4]
     count=0; Data = np.zeros((len(t_range)*len(tau_range),5+N-1),dtype=float)
@@ -137,12 +137,13 @@ def test():
 #            for sigma in [1,0.5,0.25]:
 #                isIG(d,v,sigma)
                 
-    N=4; d=1; v=1; sigma=1; T=1; tau=4;
+    N=4; d=1; v=1; sigma=1; T=1; tau=1
     start = time.time()
     res = sim(N,d,v,sigma,T,tau)
     print("result : ", res, " Time: ", time.time()-start)
         
-main(int(sys.argv[1]))
+test()
+# main(int(sys.argv[1]))
 
     
     
