@@ -90,8 +90,8 @@ def main_prl(N):
     # run for different parameter combination
     
     d=1; v=1; sigma=1
-    t_range = np.arange(0.1,4,0.1)
-    tau_range = np.arange(0.5,4,0.1)
+    t_range = np.arange(0.1,4.01,0.2)
+    tau_range = np.arange(0.5,4.01,0.2)
     Data = np.zeros((len(t_range)*len(tau_range),5+N-1),dtype=float)
     res = Parallel(n_jobs=16)(delayed(sim)(N,d,v,sigma,i,j) for j in tau_range for i in t_range)    
     res = np.array(res)
