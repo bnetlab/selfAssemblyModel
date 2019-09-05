@@ -1,20 +1,20 @@
 % main function
 % longer observation and input time range
 
-clear all
+%clear all
 clc
 tic
 
-tau=4;
+tau=2;
 T=4;
 
 % mu=1.0;
 % lambda=1.0;
 bin=0.10;
 Pmin=0;
-Pmax=20;
-tmin=-20;
-tmax=40;
+Pmax=10;
+tmin=-10;
+tmax=10;
 
 Pin_point=(Pmax-Pmin)/bin +1;
 obs_point=(tmax-tmin)/bin+1;
