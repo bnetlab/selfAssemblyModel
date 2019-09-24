@@ -16,7 +16,7 @@ def sim(del_G_alpha, del_G_beta):
     
     #Fibril and micelle concentration
     sigma = np.sqrt(D/2)
-    F=0.5; M=0.5
+    F=0.25; M=0.75
     #loop and result variable
     sim=0; count_F=0; count_M=0;
     
@@ -38,7 +38,7 @@ def sim(del_G_alpha, del_G_beta):
                         del_x = (1 if del_x > 0 else -1) *del_t* np.sqrt((del_x/del_t)**2- (2*del_G_alpha/m))
                 position+= v*del_t + del_x
     
-            print(f_alpha)
+            #print(f_alpha)
             if f_alpha==True:
                 if(np.random.uniform()<(M/(M+F))):
                     bind_M=True
@@ -49,7 +49,7 @@ def sim(del_G_alpha, del_G_beta):
             
         count_F+=bind_F
         count_M+=bind_M
-        print("sim number ", sim, "bind_F ", bind_F, "bind_M ", bind_M)
+        #print("sim number ", sim, "bind_F ", bind_F, "bind_M ", bind_M)
         sim+=1
     
     print("Fibril bind",count_F/num_sim,"Micelle bind",count_M/num_sim)
@@ -78,14 +78,14 @@ def main():
     del_G_alpha=np.arange(0.5,4.001,0.5)
     del_G_beta=np.arange(0.5,4.001,0.5)
     result= np.empty((3,len(del_G_alpha)*len(del_G_beta)))
-    x = Parallel(n_jobs=16)(delayed(sim)(i,j) for j in del_G_beta for i in del_G_alpha )
+    x = Parallel(n_jobs=8)(delayed(sim)(i,j) for j in del_G_beta for i in del_G_alpha )
     print(x)
     count=0
     for i in del_G_alpha:
             for j in del_G_beta:
                 result[0,count]= i; result[1,count]=j;count+=1;
     result[2,:]=np.array(x)
-    np.savetxt("result.csv",result,delimiter=",")
+    np.savetxt("result_F75_M25.csv",result,delimiter=",")
 
 #test(1.0,1.0)
 main()
