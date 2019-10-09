@@ -32,7 +32,7 @@ def sim(del_G_alpha, del_G_beta):
     sigma = np.sqrt(D/2)
     
     #Fibril and micelle copy number
-    num_mol=100
+    num_mol=200
     num_F=10; num_M=10;
     F_binding_site=10; M_binding_site=10;
     F_list=[]; M_list=[]; 
@@ -124,7 +124,7 @@ def main_prl():
             for j in del_G_beta:
                 result[0,count]= i; result[1,count]=j;count+=1;
     result[2,:]=np.array(x)
-    np.savetxt("result_extension_F10_M10.csv",result,delimiter=",")
+    np.savetxt("result_extension_F10_M10_N200.csv",result,delimiter=",")
     print("Time: ", timeit.default_timer() - start)
 
 #test(1.0,1.0)
