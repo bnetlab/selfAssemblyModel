@@ -11,6 +11,8 @@ import numpy as np
 from joblib import Parallel, delayed
 from random import randrange
 import timeit
+import matplotlib.pyplot as plt
+
 
 #define fibril and micelle class
 class fibril:
@@ -32,10 +34,11 @@ def sim(del_G_alpha, del_G_beta):
     sigma = np.sqrt(D/2)
     
     #Fibril and micelle copy number
-    num_mol=200
+    num_mol=100
     num_F=10; num_M=10;
     F_binding_site=10; M_binding_site=10;
     F_list=[]; M_list=[]; 
+    bind_time =np.zeros(num_mol); bind_type=np.zeros(num_mol, dtype=int);
     
     # declearing number of micelle and fibril
     for i in range(0,num_F):
@@ -50,10 +53,12 @@ def sim(del_G_alpha, del_G_beta):
     
     while(sim<num_mol):
         bind_M=False; bind_F=False; f_alpha=True;
+        current_time=0;
         while(not(bind_F) and not(bind_M)):
             position=0
             while (position< l):
                 #inside channel
+                current_time+=del_t
                 del_x = sigma*np.sqrt(del_t)*np.random.randn()
                 # v_eff = v + del_x/del_t
                 kinetic_energy = 0.5*m*(del_x/del_t)**2
@@ -84,12 +89,14 @@ def sim(del_G_alpha, del_G_beta):
             
         count_F+=bind_F
         count_M+=bind_M
+        bind_time[sim]=current_time
+        bind_type[sim]=int(bind_F) 
         #print("sim number ", sim, "bind_F ", bind_F, "bind_M ", bind_M)
         sim+=1
     
     #print("Fibril bind",count_F/num_mol,"Micelle bind",count_M/num_mol)
     #print(M_list[0].binding_site, F_list[0].binding_site) 
-    return(count_F/num_mol)
+    return(count_F/num_mol, bind_time, bind_type)
 
 def main():
     del_G_alpha=np.arange(0.5,4.001,0.5)
@@ -104,18 +111,45 @@ def main():
             count+=1
             print(count)
     np.savetxt("result.csv",result,delimiter=",")
+    
 
 def test(i,j, num_sim=10**3):
-    F_b=[]
+    F_b=[]; F_Time =[]; F_Type=[]
     for temp in range(num_sim):
-        F_b.append(sim(i,j))
+        F_b.append(sim(i,j)[0])
+        F_Time.append(sim(i,j)[1])
+        F_Type.append(sim(i,j)[2])    
     print(np.array(F_b).mean(), 1-np.array(F_b).mean())
+    np.array(F_b).mean()
+    Data_time=np.array(F_Time)
+    Data_time = np.cumsum(Data_time, axis=1)
+    
+    Data_Type_F=np.array(F_Type)
+    Data_Type_M=np.where(Data_Type_F< 0.5, 1, 0)
+    Data_Type_F = np.cumsum(Data_Type_F, axis=1)
+    Data_Type_M = np.cumsum(Data_Type_M, axis=1)
+    
+    F_bind_time=[]
+    for k in range(np.amax(Data_Type_F)-2):
+        F_bind_time.append(Data_time[Data_Type_F==k].mean())
+        
+    M_bind_time=[]
+    for k in range(np.amax(Data_Type_M)-2):
+        M_bind_time.append(Data_time[Data_Type_M==k].mean())
+
+    plt.plot(F_bind_time,'g*',label='F')
+    plt.plot(M_bind_time, 'ro', label='M')
+    plt.xlabel('Number of molecules')
+    plt.ylabel('time')
+    filename= 'sample_'+str(i) + '_' + str(j)+'.pdf'
+    plt.savefig(filename)
+    print(Data_time.shape)
     return np.array(F_b).mean()
 
 def main_prl():
     start=  timeit.default_timer()        
-    del_G_alpha=np.arange(0.5,4.001,0.5)
-    del_G_beta=np.arange(0.5,4.001,0.5)
+    del_G_alpha=np.arange(1.0,4.001,1)
+    del_G_beta=np.arange(1.0,4.001,1)
     result= np.empty((3,len(del_G_alpha)*len(del_G_beta)))
     x = Parallel(n_jobs=8)(delayed(test)(i,j) for j in del_G_beta for i in del_G_alpha )
     #print(x)
