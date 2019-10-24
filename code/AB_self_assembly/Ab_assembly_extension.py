@@ -12,6 +12,7 @@ from joblib import Parallel, delayed
 from random import randrange
 import timeit
 import matplotlib.pyplot as plt
+import sys
 
 
 #define fibril, micelle and monomer class
@@ -47,7 +48,7 @@ class sim:
         # parameters
         
         #Fibril and micelle copy number
-        num_mol=10; num_F=10; num_M=10;
+        num_mol=5; num_F=10; num_M=10;
         F_binding_site=10; M_binding_site=10;
         F_list=[]; M_list=[];mol_list=[];
         for i in range(0,num_F):
@@ -62,16 +63,19 @@ class sim:
         while(len(mol_list)>0):
             current_time += self.del_t
             for i in range(0, len(mol_list)):
-                del_x = self.sigma*np.sqrt(self.del_t)*np.random.randn()
-                kinetic_energy = 0.5*self.m*(del_x/self.del_t)**2
-                if ((mol_list[i].f_alpha == True) and (kinetic_energy>del_G_beta)):
-                    mol_list[i].f_alpha=not mol_list[i].f_alpha
-                    del_x = (1 if del_x > 0 else -1) *self.del_t* np.sqrt((del_x/self.del_t)**2- (2*del_G_beta/self.m)) # direction??
-                if((mol_list[i].f_alpha == False) and (kinetic_energy>del_G_alpha)):
-                    mol_list[i].f_alpha=not mol_list[i].f_alpha
-                    del_x = (1 if del_x > 0 else -1) *self.del_t* np.sqrt((del_x/self.del_t)**2- (2*del_G_alpha/self.m))
+                del_x = self.sigma *np.sqrt(self.del_t) *np.random.randn()
+                kinetic_energy = 0.5* self.m * (del_x/self.del_t)**2
+                if (mol_list[i].f_alpha == True): 
+                    if(kinetic_energy>del_G_beta):
+                        mol_list[i].f_alpha=not mol_list[i].f_alpha
+                        del_x_new = (1 if del_x > 0 else -1) * self.del_t * np.sqrt((del_x/self.del_t)**2 - (2*del_G_beta/self.m) + sys.float_info.epsilon) # direction??
+                        del_x =del_x_new
+                else:
+                    if(kinetic_energy>del_G_alpha):
+                        mol_list[i].f_alpha=not mol_list[i].f_alpha
+                        del_x_new = (1 if del_x > 0 else -1) * self.del_t* np.sqrt((del_x/self.del_t)**2 - (2*del_G_alpha/self.m) + sys.float_info.epsilon)
+                        del_x=del_x_new
                 mol_list[i].position+= self.v*self.del_t + del_x
-            
             for i in range(0, len(mol_list)):
                 if(mol_list[i].position > self.l): 
                     if mol_list[i].f_alpha==True:
@@ -81,6 +85,7 @@ class sim:
                                 mol_list[i].bind_M=True
                                 M_list[selected_M].bind()
                                 del mol_list[i]
+                                print(i , 'deleted')
                                 count_M+=1
                             else:
                                 mol_list[i].position=0
