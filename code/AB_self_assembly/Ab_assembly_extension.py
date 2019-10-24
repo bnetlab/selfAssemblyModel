@@ -36,79 +36,113 @@ class monomer:
 
 # main simulation
 class sim:
-    def __init__(self,del_t=0.001, v=1, D=0.5, l=10, m=0.01):
+    """simulation class
+    
+    """
+    
+    def __init__(self,del_t=0.001, v=1, D=0.5, l=10, m=0.01, num_sim=5, num_mol=5, num_F=10,num_M=10,F_binding_site=10,M_binding_site=10):
         self.del_t=del_t
         self.v=v
         self.D=D
         self.l=l
         self.m=m
         self.sigma = np.sqrt(self.D/2)
+        self.num_sim = num_sim
+        self.num_mol = num_mol
+        self.num_F = num_F
+        self.num_M = num_M
+        self.F_binding_site= F_binding_site
+        self.M_binding_site = M_binding_site
 
     def doSim(self,del_G_alpha, del_G_beta):
-        # parameters
         
-        #Fibril and micelle copy number
-        num_mol=5; num_F=10; num_M=10;
-        F_binding_site=10; M_binding_site=10;
-        F_list=[]; M_list=[];mol_list=[];
-        for i in range(0,num_F):
-            F_list.append(fibril(F_binding_site))
-        for i in range(0,num_M):
-            M_list.append(micelle(M_binding_site))    
-        for i in range(0,num_mol):
-            mol_list.append(monomer())
-            
-        sim=0; count_F=0; count_M=0;
-        current_time=0;
-        while(len(mol_list)>0):
-            current_time += self.del_t
-            for i in range(0, len(mol_list)):
-                del_x = self.sigma *np.sqrt(self.del_t) *np.random.randn()
-                kinetic_energy = 0.5* self.m * (del_x/self.del_t)**2
-                if (mol_list[i].f_alpha == True): 
-                    if(kinetic_energy>del_G_beta):
-                        mol_list[i].f_alpha=not mol_list[i].f_alpha
-                        del_x_new = (1 if del_x > 0 else -1) * self.del_t * np.sqrt((del_x/self.del_t)**2 - (2*del_G_beta/self.m) + sys.float_info.epsilon) # direction??
-                        del_x =del_x_new
-                else:
-                    if(kinetic_energy>del_G_alpha):
-                        mol_list[i].f_alpha=not mol_list[i].f_alpha
-                        del_x_new = (1 if del_x > 0 else -1) * self.del_t* np.sqrt((del_x/self.del_t)**2 - (2*del_G_alpha/self.m) + sys.float_info.epsilon)
-                        del_x=del_x_new
-                mol_list[i].position+= self.v*self.del_t + del_x
-            for i in range(0, len(mol_list)):
-                if(mol_list[i].position > self.l): 
-                    if mol_list[i].f_alpha==True:
-                        if(np.random.uniform()<(num_M/(num_M + num_F))):
-                            selected_M=randrange(num_M)
-                            if M_list[selected_M].binding_site > 0:
-                                mol_list[i].bind_M=True
-                                M_list[selected_M].bind()
-                                del mol_list[i]
-                                print(i , 'deleted')
-                                count_M+=1
+        """This method perform the simulation
+        
+        Args: 
+            del_G_alpha(float) : binding energy to alpha
+            del_G_beta(float): binding energy to beta
+        
+        Returns:
+            probabity of bind_F and bind_M
+        
+        
+        """
+        
+        sim=0; binding_probability=[]
+        # initializing monomer, fibril and micelle
+        while (sim< self.num_sim): 
+            print('sim_number :', sim)
+            F_list=[]; M_list=[];mol_list=[];
+            for i in range(0,self.num_F):
+                F_list.append(fibril(self.F_binding_site))
+            for i in range(0,self.num_M):
+                M_list.append(micelle(self.M_binding_site))    
+            for i in range(0,self.num_mol):
+                mol_list.append(monomer())
+                
+            count_F=0; count_M=0;
+            current_time=0;
+            while(len(mol_list)>0):
+                current_time += self.del_t
+                # calculation in every time step
+                for i in range(0, len(mol_list)):
+                    del_x = self.sigma *np.sqrt(self.del_t) *np.random.randn()
+                    kinetic_energy = 0.5* self.m * (del_x/self.del_t)**2
+                    if (mol_list[i].f_alpha == True): 
+                        if(kinetic_energy>del_G_beta):
+                            mol_list[i].f_alpha=not mol_list[i].f_alpha
+                            del_x_new = (1 if del_x > 0 else -1) * self.del_t * np.sqrt((del_x/self.del_t)**2 - (2*del_G_beta/self.m) + sys.float_info.epsilon) # direction??
+                            del_x =del_x_new
+                    else:
+                        if(kinetic_energy>del_G_alpha):
+                            mol_list[i].f_alpha=not mol_list[i].f_alpha
+                            del_x_new = (1 if del_x > 0 else -1) * self.del_t* np.sqrt((del_x/self.del_t)**2 - (2*del_G_alpha/self.m) + sys.float_info.epsilon)
+                            del_x=del_x_new
+                    mol_list[i].position+= self.v*self.del_t + del_x
+                    
+                i=0
+                while(i<len(mol_list)):
+                    # calculation after end of the channel
+                    if(mol_list[i].position > self.l): 
+                        if mol_list[i].f_alpha==True:
+                            if(np.random.uniform()<(self.num_M/(self.num_M + self.num_F))):
+                                selected_M=randrange(self.num_M)
+                                if M_list[selected_M].binding_site > 0:
+                                    mol_list[i].bind_M=True
+                                    M_list[selected_M].bind()
+                                    del mol_list[i]
+                                    count_M+=1
+                                else:
+                                    mol_list[i].position=0
+                                    i+=1
                             else:
                                 mol_list[i].position=0
+                                i+=1
+                    
+                        elif mol_list[i].f_alpha==False:
+                            if(np.random.uniform()<(self.num_F/(self.num_M + self.num_F))):
+                                selected_F=randrange(self.num_F)
+                                mol_list[i].bind_F=True
+                                F_list[selected_F].bind()
+                                del mol_list[i]
+                                count_F+=1
+                            else:
+                                mol_list[i].position=0
+                                i+=1
                         else:
                             mol_list[i].position=0
-                
-                    if mol_list[i].f_alpha==False:
-                        if(np.random.uniform()<(num_F/(num_M + num_F))):
-                            selected_F=randrange(num_F)
-                            mol_list[i].bind_F=True
-                            F_list[selected_F].bind()
-                            del mol_list[i]
-                            count_F+=1
-                        else:
-                            mol_list[i].position=0
+                            i+=1
                     else:
-                        mol_list[i].position=0
-                            
-        print("sim number ", sim, "bind_F ", count_F, "bind_M ", count_M)
+                        i+=1
+                                
+            binding_probability_each_sim=[count_F/self.num_mol,count_M/self.num_mol]
+            binding_probability.append(binding_probability_each_sim)
+            sim+=1
         
+            
         #print("Fibril bind",count_F/num_mol,"Micelle bind",count_M/num_mol)
         #print(M_list[0].binding_site, F_list[0].binding_site) 
-        return(count_F, count_M)
+        return(binding_probability)
 
 def main():
     del_G_alpha=np.arange(0.5,4.001,0.5)
@@ -174,7 +208,7 @@ def main_prl():
     print("Time: ", timeit.default_timer() - start)
 
 a =sim()
-sim.doSim(a,del_G_alpha=1, del_G_beta=1)
+res = sim.doSim(a,del_G_alpha=1, del_G_beta=1)
 #main_prl()
 
 
