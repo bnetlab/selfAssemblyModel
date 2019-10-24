@@ -81,9 +81,14 @@ class sim:
                 mol_list.append(monomer())
                 
             count_F=0; count_M=0;
-            current_time=0;
+            current_time=0; time_step=0;
             while(len(mol_list)>0):
+                time_step+=1
                 current_time += self.del_t
+                if (time_step==500):
+                    print(self.num_mol, 'number of monomer added')
+                    for i in range(0,self.num_mol):
+                        mol_list.append(monomer())
                 # calculation in every time step
                 for i in range(0, len(mol_list)):
                     del_x = self.sigma *np.sqrt(self.del_t) *np.random.randn()
@@ -112,6 +117,7 @@ class sim:
                                     M_list[selected_M].bind()
                                     del mol_list[i]
                                     count_M+=1
+                                    print('Time: ',current_time, 'mol_in_system :', len(mol_list),'bind_M_Total ',count_M )
                                 else:
                                     mol_list[i].position=0
                                     i+=1
@@ -126,6 +132,7 @@ class sim:
                                 F_list[selected_F].bind()
                                 del mol_list[i]
                                 count_F+=1
+                                print('Time: ',current_time, 'mol_in_system :', len(mol_list),'bind_F_Total ',count_F)
                             else:
                                 mol_list[i].position=0
                                 i+=1
@@ -135,14 +142,14 @@ class sim:
                     else:
                         i+=1
                                 
-            binding_probability_each_sim=[count_F/self.num_mol,count_M/self.num_mol]
+            binding_probability_each_sim=[count_F/(2*self.num_mol),count_M/(2*self.num_mol)]
+            print(binding_probability_each_sim)
             binding_probability.append(binding_probability_each_sim)
             sim+=1
-        
-            
-        #print("Fibril bind",count_F/num_mol,"Micelle bind",count_M/num_mol)
-        #print(M_list[0].binding_site, F_list[0].binding_site) 
-        return(binding_probability)
+
+        np_binding_probability= np.array(binding_probability).mean(axis=0)
+        print(np_binding_probability)
+        return(np_binding_probability)
 
 def main():
     del_G_alpha=np.arange(0.5,4.001,0.5)
