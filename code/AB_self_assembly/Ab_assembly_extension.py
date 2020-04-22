@@ -15,7 +15,7 @@ import timeit
 import matplotlib.pyplot as plt
 import sys
 import os
-
+from scipy.optimize import differential_evolution
 
 #define fibril, micelle and monomer class
 class fibril:
@@ -42,7 +42,7 @@ class sim:
     
     """
     
-    def __init__(self,del_t=0.01, v=1, D=0.5, l=10, m=0.01,  num_mol=100, num_F=10,num_M=10,F_binding_site=10,M_binding_site=10, add_Monomer = False):
+    def __init__(self,del_t=0.01, v=1, D=0.5, l=10, m=0.01,  num_mol=100, num_F=10, num_M=10, F_binding_site=10, M_binding_site=10, add_Monomer = False):
         self.del_t=del_t
         self.v=v
         self.D=D
@@ -145,7 +145,7 @@ class sim:
                 else:
                     i+=1
                             
-        return count_F/(2*self.num_mol),count_M/(2*self.num_mol), bind_time, bind_type
+        return count_F/(self.num_mol),count_M/(self.num_mol), bind_time, bind_type
         
 
 
@@ -223,7 +223,7 @@ def doSimAll(i, j, num_sim=100):
     return  np.array(F_b).mean()
 
 
-def getDataAtTime(x, a, b, mapping_constant):
+def getDataAtTime(x, a, b, mappingF, mappingM):
     
     """
     F_binding number at a given time
@@ -236,8 +236,8 @@ def getDataAtTime(x, a, b, mapping_constant):
     Return:
         res F_binding number
     """
-    print(x, a, b, mapping_constant)
-    num_sim=10
+    #print(a, b, mapping_constant)
+    num_sim=20
     F_M=[]; F_b=[]; F_Time=[]; F_Type=[];
     for temp in range(num_sim):
         simulation= sim()
@@ -246,31 +246,32 @@ def getDataAtTime(x, a, b, mapping_constant):
         F_b.append(res[1])
         F_Time.append(res[2])
         F_Type.append(res[3])    
-    print(np.array(F_M).mean(), np.array(F_b).mean())
+    #print(np.array(F_M).mean(), np.array(F_b).mean())
     Data_time=np.array(F_Time)
-    Data_time = np.cumsum(Data_time, axis=1)
 
     Data_Type_F=np.array(F_Type)
     Data_Type_M=np.where(Data_Type_F< 0.5, 1, 0)
     Data_Type_F = np.cumsum(Data_Type_F, axis=1)
     Data_Type_M = np.cumsum(Data_Type_M, axis=1)
-    print(Data_Type_F)
-    print(Data_Type_M)
+    #print(Data_Type_F)
+    #print(Data_Type_M)
 
     F_bind_time=[0]
-    for k in range(np.amax(Data_Type_F)-2):
+    for k in range(1,np.amax(Data_Type_F)-5):
         F_bind_time.append(Data_time[Data_Type_F==k].mean())
 
     M_bind_time=[0]
-    for k in range(np.amax(Data_Type_M)-2):
+    for k in range(1,np.amax(Data_Type_M)-5):
         M_bind_time.append(Data_time[Data_Type_M==k].mean())
     #print(k* sum(np.array(F_bind_time)<x))
-    res= []
+    resF = []; resM= []
     for i in x:
-        res.append(mapping_constant * sum(np.array(F_bind_time)<i))
-    print(F_bind_time)
-    print(res)
-    return res
+        resF.append(mappingF * sum(np.array(F_bind_time)<i))
+        resM.append(mappingM * sum(np.array(M_bind_time)<i))
+    #print(F_bind_time)
+
+    #print(a, b, mapping_constant)
+    return resF, resM
 
 def fitting():
     """
@@ -280,11 +281,54 @@ def fitting():
         estimated G_alpha, G_beta, mapping constant
     """
     # dummay data
-    x = np.random.uniform(0., 10000., 100)
+    x = np.random.uniform(0., 1000., 100)
     y = 3. * x + 2. + np.random.normal(0., 10., 100)
     # fitting using Levenberg-Marquardt algorithm
     popt, pcov = curve_fit(getDataAtTime, x, y, bounds=(0, [2., 2., 100.]))
     print(popt)
 
-fitting()
-#getDataAtTime([50],2.,2.,100)
+
+def Objfunc(parameters, *data):
+
+    #we have 3 parameters which will be passed as parameters and
+    #"experimental" x,y which will be passed as data
+
+    a, b, mappingF, mappingM = parameters
+    x, y = data
+    
+    res= getDataAtTime(x, a, b, mappingF, mappingM)
+    sim_res= res[0] + res[1]
+    #print(x)
+    #print(sim_res)
+    result = 0
+
+    for i in range(len(x)):
+        result += (sim_res[i] - y[i])**2
+    
+    print(parameters, result**0.5)
+    return result**0.5
+
+def fittingDE():
+    """
+    Fit the model with expremental data
+    
+    Returns:
+        estimated G_alpha, G_beta, mapping constant
+    """
+    #initial guess for variation of parameters
+    #             a            b            c
+    bounds = [(0.5, 5), (0.5, 5), (0, 1), (0,1)]
+
+    # dummay data
+    data = np.loadtxt("data.txt.csv")
+    x = data[:,0]
+    y = (data[:,1]-min(data[:,1]))/(max(data[:,1]-min(data[:,1])))
+    #packing "experimental" data into args
+    args = (x,y)
+
+    result = differential_evolution(Objfunc, bounds, args=args, maxiter=200)
+    print(result.x, result.fun)
+
+
+
+#fittingDE()
