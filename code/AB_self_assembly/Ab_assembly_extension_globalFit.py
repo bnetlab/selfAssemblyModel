@@ -223,7 +223,7 @@ def doSimAll(i, j, num_sim=100):
     return  np.array(F_b).mean()
 
 
-def getDataAtTime(x, a, b, l, mappingF, mappingM):
+def getDataAtTime(x, a, b, l, mappingF, mappingM, numM, numF):
     
     """
     F_binding number at a given time
@@ -240,7 +240,7 @@ def getDataAtTime(x, a, b, l, mappingF, mappingM):
     num_sim=20
     F_M=[]; F_b=[]; F_Time=[]; F_Type=[];
     for temp in range(num_sim):
-        simulation= sim(l=l)
+        simulation= sim(l=l, num_F=numF, num_M=numM)
         res= simulation.doSim(a,b)
         F_M.append(res[0])
         F_b.append(res[1])
@@ -294,16 +294,25 @@ def Objfunc(parameters, *data):
     #"experimental" x,y which will be passed as data
 
     a, b, l, mappingF, mappingM = parameters
-    x, y = data
+    x, y1, y2, y3 = data
     
-    res= getDataAtTime(x, a, b, l, mappingF, mappingM)
-    sim_res= res[0] + res[1]
+    res= getDataAtTime(x, a, b, l, mappingF, mappingM, 10, 0)
+    sim_res1= res[0] + res[1]
+    res= getDataAtTime(x, a, b, l, mappingF, mappingM, 0, 10)
+    sim_res2 = res[0] + res[1]
+    res= getDataAtTime(x, a, b, l, mappingF, mappingM, 10, 10)
+    sim_res3 = res[0] + res[1]
+    
+    
     #print(x)
     #print(sim_res)
     result = 0
 
     for i in range(len(x)):
-        result += (sim_res[i] - y[i])**2
+        result += (sim_res1[i] - y1[i])**2
+        result += (sim_res2[i] - y2[i])**2
+        result += (sim_res3[i] - y3[i])**2
+        
     
     print(parameters, result**0.5)
     return result**0.5
@@ -321,26 +330,42 @@ def fittingDE():
     # dummay data
     data = np.loadtxt("data.txt.csv")
     x = data[:,0]
-    y = (data[:,1]-min(data[:,1]))/(max(data[:,1]-min(data[:,1])))
+    y1 = (data[:,1]-min(data[:,1]))/(max(data[:,1]-min(data[:,1])))
+    y2 = (data[:,2]-min(data[:,2]))/(max(data[:,2]-min(data[:,2])))
+    y3 = (data[:,3]-min(data[:,3]))/(max(data[:,3]-min(data[:,3])))
     #packing "experimental" data into args
-    args = (x,y)
+    args = (x, y1, y2, y3)
 
-    result = differential_evolution(Objfunc, bounds, args=args, maxiter=20, workers=-1)
+    result = differential_evolution(Objfunc, bounds, args=args, maxiter=10, workers=-1)
     print(result.x, result.fun)
-
 
 def plotFit(paras):
     data = np.loadtxt("data.txt.csv")
     x = data[:,0]
-    y = (data[:,1]-min(data[:,1]))/(max(data[:,1]-min(data[:,1])))
-    plt.scatter(x,y)
-    simdata = getDataAtTime(x,paras[0], paras[1], paras[2], paras[3], paras[4])
-    simdataTemp = np.array(simdata[0])+ np.array(simdata[1])
-    simdataTemp = (simdataTemp - min(simdataTemp))/(max(simdataTemp) - min(simdataTemp))
+    y1 = (data[:,1]-min(data[:,1]))/(max(data[:,1]-min(data[:,1])))
+    y2 = (data[:,2]-min(data[:,2]))/(max(data[:,2]-min(data[:,2])))
+    y3 = (data[:,3]-min(data[:,3]))/(max(data[:,3]-min(data[:,3])))
+    plt.scatter(x,y1)
+    plt.scatter(x,y2)
+    plt.scatter(x,y3)
+    
+    simdata1 = getDataAtTime(x,paras[0], paras[1], paras[2], paras[3], paras[4], 10, 0)
+    simdata2 = getDataAtTime(x,paras[0], paras[1], paras[2], paras[3], paras[4], 0, 10)
+    simdata3 = getDataAtTime(x,paras[0], paras[1], paras[2], paras[3], paras[4], 10, 10)
+    
+    simdataTemp1 = np.array(simdata1[0])+ np.array(simdata1[1])
+    simdataTemp1 = (simdataTemp1 - min(simdataTemp1))/(max(simdataTemp1) - min(simdataTemp1))
+    simdataTemp2 = np.array(simdata2[0])+ np.array(simdata2[1])
+    simdataTemp2 = (simdataTemp2 - min(simdataTemp2))/(max(simdataTemp2) - min(simdataTemp2))
+    simdataTemp3 = np.array(simdata3[0])+ np.array(simdata3[1])
+    simdataTemp3 = (simdataTemp3 - min(simdataTemp3))/(max(simdataTemp3) - min(simdataTemp3))
+    
     plt.xlabel('Time')
     plt.ylabel('ThT')
-    plt.plot(x, simdataTemp)
-    
+    plt.plot(x, simdataTemp1)
+    plt.plot(x, simdataTemp2)
+    plt.plot(x, simdataTemp3)
+
 
 #fittingDE()
-plotFit([3.38650946, 0.94770734, 0.44330708, 0.02451052, 0.91725306])
+plotFit([2.53311528, 2.68185575, 0.31210871, 0.49763246, 0.39335691])
