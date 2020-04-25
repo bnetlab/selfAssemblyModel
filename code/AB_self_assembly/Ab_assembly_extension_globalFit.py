@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 import sys
 import os
 from scipy.optimize import differential_evolution
-
+import time
 #define fibril, micelle and monomer class
 class fibril:
     def __init__(self,  binding_site):
@@ -42,7 +42,7 @@ class sim:
     
     """
     
-    def __init__(self,del_t=0.01, v=1, D=0.5, l=10, m=0.01,  num_mol=100, num_F=10, num_M=10, F_binding_site=10, M_binding_site=10, add_Monomer = False):
+    def __init__(self,del_t=0.01, v=1, D=0.5, l=10, m=0.01,  num_mol=100, num_F=10, num_M=10, F_binding_site=10, M_binding_site=10, add_Monomer = False, simTime=2000):
         self.del_t=del_t
         self.v=v
         self.D=D
@@ -55,6 +55,7 @@ class sim:
         self.F_binding_site= F_binding_site
         self.M_binding_site = M_binding_site
         self.add_Monomer = add_Monomer
+        self.simTime = simTime
 
     def doSim(self,del_G_alpha, del_G_beta):
         
@@ -80,7 +81,7 @@ class sim:
         count_F=0; count_M=0;
         current_time=0; time_step=0;
         bind_time =[]; bind_type=[];
-        while(len(mol_list)>0 or time_step<20000):
+        while(len(mol_list)>0 or time_step<self.simTime):
             time_step+=1
             current_time += self.del_t
             if self.add_Monomer:
@@ -201,6 +202,7 @@ def doSimAll(i, j, num_sim=100):
     Data_time=np.array(F_Time)
     Data_time = np.cumsum(Data_time, axis=1)
 
+
     Data_Type_F=np.array(F_Type)
     Data_Type_M=np.where(Data_Type_F< 0.5, 1, 0)
     Data_Type_F = np.cumsum(Data_Type_F, axis=1)
@@ -248,8 +250,9 @@ def getDataAtTime(x, a, b, l, mappingF, mappingM, numM, numF):
         F_Type.append(res[3])    
     #print(np.array(F_M).mean(), np.array(F_b).mean())
     Data_time=np.array(F_Time)
-
+    
     Data_Type_F=np.array(F_Type)
+    # TypeError: '<' not supported between instances of 'list' and 'float'
     Data_Type_M=np.where(Data_Type_F< 0.5, 1, 0)
     Data_Type_F = np.cumsum(Data_Type_F, axis=1)
     Data_Type_M = np.cumsum(Data_Type_M, axis=1)
@@ -367,5 +370,15 @@ def plotFit(paras):
     plt.plot(x, simdataTemp3)
 
 
-#fittingDE()
-plotFit([2.53311528, 2.68185575, 0.31210871, 0.49763246, 0.39335691])
+def test():
+    start = time.time()
+    num_sim=20
+    for temp in range(num_sim):
+        simulation= sim(l=0.1, num_F=10, num_M=0)
+        simulation.doSim(1,1)
+    end = time.time()
+    print(end - start)
+
+test()
+fittingDE()
+#plotFit([2.53311528, 2.68185575, 0.31210871, 0.49763246, 0.39335691])
